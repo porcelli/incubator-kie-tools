@@ -18,8 +18,12 @@
  */
 
 import { Button } from "@patternfly/react-core/dist/js/components/Button";
-import { EmptyState, EmptyStateIcon } from "@patternfly/react-core/dist/js/components/EmptyState";
-import { Title } from "@patternfly/react-core/dist/js/components/Title";
+import {
+  EmptyState,
+  EmptyStateIcon,
+  EmptyStateHeader,
+  EmptyStateFooter,
+} from "@patternfly/react-core/dist/js/components/EmptyState";
 import { CubesIcon } from "@patternfly/react-icons/dist/js/icons/cubes-icon";
 import { OutlinedTrashAltIcon } from "@patternfly/react-icons/dist/js/icons/outlined-trash-alt-icon";
 import * as React from "react";
@@ -27,12 +31,12 @@ import { ChangeEvent, useCallback } from "react";
 import { Action, BoxedFunction, generateUuid, getNextAvailablePrefixedName, Normalized } from "../../api";
 import { useBoxedExpressionEditorI18n } from "../../i18n";
 import { useBoxedExpressionEditorDispatch } from "../../BoxedExpressionEditorContext";
-import { DMN15__tInformationItem } from "@kie-tools/dmn-marshaller/dist/schemas/dmn-1_5/ts-gen/types";
+import { DMN_LATEST__tInformationItem } from "@kie-tools/dmn-marshaller";
 import { DataTypeSelector } from "../../expressionVariable/DataTypeSelector";
 import "./ParametersPopover.css";
 
 export interface ParametersPopoverProps {
-  parameters: Normalized<DMN15__tInformationItem>[];
+  parameters: Normalized<DMN_LATEST__tInformationItem>[];
 }
 
 export const ParametersPopover: React.FunctionComponent<ParametersPopoverProps> = ({ parameters }) => {
@@ -86,11 +90,16 @@ export const ParametersPopover: React.FunctionComponent<ParametersPopoverProps> 
       ) : (
         <div className="parameters-container-empty">
           <EmptyState>
-            <EmptyStateIcon icon={CubesIcon} />
-            <Title headingLevel="h4">{i18n.noParametersDefined}</Title>
-            <Button variant="primary" onClickCapture={addParameter}>
-              {i18n.addParameter}
-            </Button>
+            <EmptyStateHeader
+              titleText={<>{i18n.noParametersDefined}</>}
+              icon={<EmptyStateIcon icon={CubesIcon} />}
+              headingLevel="h4"
+            />
+            <EmptyStateFooter>
+              <Button variant="primary" onClickCapture={addParameter}>
+                {i18n.addParameter}
+              </Button>
+            </EmptyStateFooter>
           </EmptyState>
         </div>
       )}
@@ -98,7 +107,8 @@ export const ParametersPopover: React.FunctionComponent<ParametersPopoverProps> 
   );
 };
 
-function ParameterEntry({ parameter, index }: { parameter: DMN15__tInformationItem; index: number }) {
+function ParameterEntry({ parameter, index }: { parameter: DMN_LATEST__tInformationItem; index: number }) {
+  const { i18n } = useBoxedExpressionEditorI18n();
   const { setExpression } = useBoxedExpressionEditorDispatch();
 
   const onNameChange = useCallback(
@@ -182,7 +192,7 @@ function ParameterEntry({ parameter, index }: { parameter: DMN15__tInformationIt
         className="parameter-name"
         type="text"
         onBlur={onNameChange}
-        placeholder={"Parameter Name"}
+        placeholder={i18n.parameterNamePlaceholder}
         defaultValue={parameter["@_name"]}
       />
       <DataTypeSelector value={parameter["@_typeRef"]} onChange={onDataTypeChange} menuAppendTo="parent" />

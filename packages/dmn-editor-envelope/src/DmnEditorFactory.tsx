@@ -18,6 +18,7 @@
  */
 
 import * as React from "react";
+import { useCallback, useMemo } from "react";
 import {
   Editor,
   EditorFactory,
@@ -26,12 +27,20 @@ import {
   KogitoEditorChannelApi,
   EditorTheme,
   DEFAULT_WORKSPACE_ROOT_ABSOLUTE_POSIX_PATH,
+  ChannelType,
   KogitoEditorEnvelopeApi,
 } from "@kie-tools-core/editor/dist/api";
 import { Notification } from "@kie-tools-core/notifications/dist/api";
-import { DmnEditorRoot } from "./DmnEditorRoot";
 import { ResourceContent, ResourcesList, WorkspaceEdit } from "@kie-tools-core/workspace/dist/api";
-import { useCallback } from "react";
+import { DmnEditorRoot, JavaCodeCompletionExposedInteropApi } from "./DmnEditorRoot";
+import { VsCodeNewDmnEditorEnvelopeContext } from "./vscode/VsCodeNewDmnEditorFactory";
+import {
+  DmnEditorEnvelopeI18nContext,
+  dmnEditorEnvelopeI18nDefaults,
+  dmnEditorEnvelopeI18nDictionaries,
+  useDmnEditorEnvelopeI18n,
+} from "./i18n";
+import { I18nDictionariesProvider } from "@kie-tools-core/i18n/dist/react-components";
 
 export class DmnEditorFactory implements EditorFactory<Editor, KogitoEditorEnvelopeApi, KogitoEditorChannelApi> {
   public createEditor(
@@ -91,14 +100,23 @@ export class DmnEditorInterface implements Editor {
   // This is the argument to ReactDOM.render. These props can be understood like "static globals".
   public af_componentRoot() {
     return (
-      <DmnEditorRootWrapper
-        exposing={(dmnEditorRoot) => (this.self = dmnEditorRoot)}
-        envelopeContext={this.envelopeContext}
-        workspaceRootAbsolutePosixPath={
-          this.initArgs.workspaceRootAbsolutePosixPath ?? DEFAULT_WORKSPACE_ROOT_ABSOLUTE_POSIX_PATH
-        }
-        isReadOnly={this.initArgs.isReadOnly}
-      />
+      <I18nDictionariesProvider
+        defaults={dmnEditorEnvelopeI18nDefaults}
+        dictionaries={dmnEditorEnvelopeI18nDictionaries}
+        initialLocale={this.initArgs.initialLocale}
+        ctx={DmnEditorEnvelopeI18nContext}
+      >
+        <DmnEditorRootWrapper
+          exposing={(dmnEditorRoot) => (this.self = dmnEditorRoot)}
+          envelopeContext={this.envelopeContext}
+          workspaceRootAbsolutePosixPath={
+            this.initArgs.workspaceRootAbsolutePosixPath ?? DEFAULT_WORKSPACE_ROOT_ABSOLUTE_POSIX_PATH
+          }
+          isReadOnly={this.initArgs.isReadOnly}
+          channelType={this.initArgs?.channel}
+          locale={this.initArgs.initialLocale}
+        />
+      </I18nDictionariesProvider>
     );
   }
 }
@@ -108,15 +126,22 @@ export function DmnEditorRootWrapper({
   envelopeContext,
   exposing,
   workspaceRootAbsolutePosixPath,
+  isEvaluationHighlightsSupported,
   isReadOnly,
+  channelType,
   onOpenedBoxedExpressionEditorNodeChange,
+  locale,
 }: {
   envelopeContext?: KogitoEditorEnvelopeContextType<KogitoEditorEnvelopeApi, KogitoEditorChannelApi>;
   exposing: (s: DmnEditorRoot) => void;
   workspaceRootAbsolutePosixPath: string;
+  isEvaluationHighlightsSupported?: boolean;
   isReadOnly: boolean;
+  channelType?: ChannelType;
   onOpenedBoxedExpressionEditorNodeChange?: (newOpenedNodeId: string | undefined) => void;
+  locale: string;
 }) {
+  const { i18n } = useDmnEditorEnvelopeI18n();
   const onNewEdit = useCallback(
     (workspaceEdit: WorkspaceEdit) => {
       envelopeContext?.channelApi.notifications.kogitoWorkspace_newEdit.send(workspaceEdit);
@@ -149,6 +174,23 @@ export function DmnEditorRootWrapper({
     [envelopeContext]
   );
 
+  const isImportDataTypesFromJavaClassesSupported = useMemo(
+    (): boolean => channelType === ChannelType.VSCODE_DESKTOP || channelType === ChannelType.VSCODE_WEB,
+    [channelType]
+  );
+
+  const javaCodeCompletionService = useMemo((): JavaCodeCompletionExposedInteropApi | undefined => {
+    if (isImportDataTypesFromJavaClassesSupported) {
+      const { channelApi } = envelopeContext as VsCodeNewDmnEditorEnvelopeContext;
+      return {
+        getFields: (fqcn: string, query: string = "") =>
+          channelApi?.requests?.kogitoJavaCodeCompletion__getAccessors(fqcn, query),
+        getClasses: (query: string) => channelApi?.requests?.kogitoJavaCodeCompletion__getClasses(query),
+        isLanguageServerAvailable: () => channelApi?.requests?.kogitoJavaCodeCompletion__isLanguageServerAvailable(),
+      };
+    }
+  }, [envelopeContext, isImportDataTypesFromJavaClassesSupported]);
+
   return (
     <DmnEditorRoot
       exposing={exposing}
@@ -161,7 +203,12 @@ export function DmnEditorRootWrapper({
       onOpenedBoxedExpressionEditorNodeChange={onOpenedBoxedExpressionEditorNodeChange}
       workspaceRootAbsolutePosixPath={workspaceRootAbsolutePosixPath}
       keyboardShortcutsService={envelopeContext?.services.keyboardShortcuts}
+      isEvaluationHighlightsSupported={isEvaluationHighlightsSupported ?? false}
       isReadOnly={isReadOnly}
+      isImportDataTypesFromJavaClassesSupported={isImportDataTypesFromJavaClassesSupported}
+      javaCodeCompletionService={javaCodeCompletionService}
+      locale={locale}
+      i18n={i18n}
     />
   );
 }

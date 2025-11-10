@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import { DMN15__tInformationItem } from "@kie-tools/dmn-marshaller/dist/schemas/dmn-1_5/ts-gen/types";
+import { DMN_LATEST__tInformationItem } from "@kie-tools/dmn-marshaller";
 import * as React from "react";
 import { useCallback, useEffect, useMemo } from "react";
 import {
@@ -42,7 +42,7 @@ import "./ExpressionVariableCell.css";
 
 export interface ExpressionWithVariable {
   expression: Normalized<BoxedExpression> | undefined;
-  variable: Normalized<DMN15__tInformationItem>;
+  variable: Normalized<DMN_LATEST__tInformationItem>;
 }
 
 export type OnExpressionWithVariableUpdated = (
@@ -149,7 +149,7 @@ export const ExpressionVariableCell: React.FunctionComponent<
     () => (
       <div className={`expression-info with-popover-menu`} ref={ref}>
         <p
-          className="expression-info-name pf-u-text-truncate"
+          className="expression-info-name pf-v5-u-text-truncate"
           title={variable["@_name"]}
           data-ouia-component-id={"expression-info-name"}
           data-testid={"kie-tools--bee--expression-info-name"}
@@ -157,7 +157,7 @@ export const ExpressionVariableCell: React.FunctionComponent<
           {variable["@_name"]}
         </p>
         <p
-          className="expression-info-data-type pf-u-text-truncate"
+          className="expression-info-data-type pf-v5-u-text-truncate"
           title={variable["@_typeRef"] ?? DmnBuiltInDataType.Undefined}
           data-ouia-component-id={"expression-info-data-type"}
           data-testid={"kie-tools--bee--expression-info-data-type"}

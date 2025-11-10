@@ -59,15 +59,15 @@ import { assertUnreachable } from "../ExpressionDefinitionRoot/ExpressionDefinit
 import { HIT_POLICIES_THAT_SUPPORT_AGGREGATION, HitPolicySelector } from "./HitPolicySelector";
 import _ from "lodash";
 import {
-  DMN15__tBuiltinAggregator,
-  DMN15__tDecisionRule,
-  DMN15__tHitPolicy,
-  DMN15__tInputClause,
-  DMN15__tLiteralExpression,
-  DMN15__tOutputClause,
-  DMN15__tRuleAnnotationClause,
-  DMN15__tUnaryTests,
-} from "@kie-tools/dmn-marshaller/dist/schemas/dmn-1_5/ts-gen/types";
+  DMN_LATEST__tBuiltinAggregator,
+  DMN_LATEST__tDecisionRule,
+  DMN_LATEST__tHitPolicy,
+  DMN_LATEST__tInputClause,
+  DMN_LATEST__tLiteralExpression,
+  DMN_LATEST__tOutputClause,
+  DMN_LATEST__tRuleAnnotationClause,
+  DMN_LATEST__tUnaryTests,
+} from "@kie-tools/dmn-marshaller";
 import "./DecisionTableExpression.css";
 import { Unpacked } from "../../tsExt/tsExt";
 
@@ -82,28 +82,28 @@ export const DECISION_TABLE_INPUT_DEFAULT_VALUE = "-";
 export const DECISION_TABLE_OUTPUT_DEFAULT_VALUE = "";
 export const DECISION_TABLE_ANNOTATION_DEFAULT_VALUE = "";
 
-function createInputEntry(): Unpacked<Normalized<DMN15__tDecisionRule["inputEntry"]>> {
+function createInputEntry(): Unpacked<Normalized<DMN_LATEST__tDecisionRule["inputEntry"]>> {
   return {
     "@_id": generateUuid(),
     text: { __$$text: DECISION_TABLE_INPUT_DEFAULT_VALUE },
   };
 }
 
-function createOutputEntry(): Unpacked<Normalized<DMN15__tDecisionRule["outputEntry"]>> {
+function createOutputEntry(): Unpacked<Normalized<DMN_LATEST__tDecisionRule["outputEntry"]>> {
   return {
     "@_id": generateUuid(),
     text: { __$$text: DECISION_TABLE_OUTPUT_DEFAULT_VALUE },
   };
 }
 
-function createAnnotationEntry(): Unpacked<Normalized<DMN15__tDecisionRule["annotationEntry"]>> {
+function createAnnotationEntry(): Unpacked<Normalized<DMN_LATEST__tDecisionRule["annotationEntry"]>> {
   return {
     text: { __$$text: DECISION_TABLE_ANNOTATION_DEFAULT_VALUE },
   };
 }
 
-const createDefaultRule = (): Normalized<DMN15__tDecisionRule> => {
-  const defaultRowToAdd: Normalized<DMN15__tDecisionRule> = {
+const createDefaultRule = (): Normalized<DMN_LATEST__tDecisionRule> => {
+  const defaultRowToAdd: Normalized<DMN_LATEST__tDecisionRule> = {
     "@_id": generateUuid(),
     inputEntry: [
       {
@@ -330,7 +330,7 @@ export function DecisionTableExpression({
     ]
   );
 
-  const rules = useMemo<DMN15__tDecisionRule[]>(() => {
+  const rules = useMemo<DMN_LATEST__tDecisionRule[]>(() => {
     return decisionTableExpression.rule ?? [];
   }, [decisionTableExpression]);
 
@@ -366,7 +366,6 @@ export function DecisionTableExpression({
         setWidth: setInputColumnWidth(inputIndex),
         minWidth: DECISION_TABLE_INPUT_MIN_WIDTH,
         groupType: DecisionTableColumnType.InputClause,
-        cssClasses: "decision-table--input",
         isRowIndexColumn: false,
         isHeaderAFeelExpression: true,
       })
@@ -388,7 +387,6 @@ export function DecisionTableExpression({
         setWidth: setOutputColumnWidth(outputIndex),
         minWidth: DECISION_TABLE_OUTPUT_MIN_WIDTH,
         groupType: DecisionTableColumnType.OutputClause,
-        cssClasses: "decision-table--output",
         isRowIndexColumn: false,
       })
     );
@@ -399,7 +397,6 @@ export function DecisionTableExpression({
       accessor: "decision-table-expression" as any, // FIXME: https://github.com/apache/incubator-kie-issues/issues/169
       label: decisionTableExpression["@_label"] ?? DEFAULT_EXPRESSION_VARIABLE_NAME,
       dataType: decisionTableExpression["@_typeRef"] ?? DmnBuiltInDataType.Undefined,
-      cssClasses: "decision-table--output",
       isRowIndexColumn: false,
       width: undefined,
       columns: outputColumns,
@@ -417,7 +414,6 @@ export function DecisionTableExpression({
           minWidth: DECISION_TABLE_ANNOTATION_MIN_WIDTH,
           isInlineEditable: true,
           groupType: DecisionTableColumnType.Annotation,
-          cssClasses: "decision-table--annotation",
           isRowIndexColumn: false,
           dataType: undefined!,
         };
@@ -442,7 +438,7 @@ export function DecisionTableExpression({
   ]);
 
   const beeTableRows = useMemo(() => {
-    const mapRuleToRow = (rule: Normalized<DMN15__tDecisionRule>) => {
+    const mapRuleToRow = (rule: Normalized<DMN_LATEST__tDecisionRule>) => {
       const ruleRow = [
         ...(rule.inputEntry ?? []),
         ...(rule.outputEntry ?? new Array(decisionTableExpression.output.length)),
@@ -452,7 +448,7 @@ export function DecisionTableExpression({
       return getColumnsAtLastLevel(beeTableColumns).reduce(
         (tableRow: ROWTYPE, column, columnIndex) => {
           tableRow[column.accessor] = {
-            id: (ruleRow[columnIndex] as DMN15__tUnaryTests & DMN15__tLiteralExpression)?.["@_id"] ?? "",
+            id: (ruleRow[columnIndex] as DMN_LATEST__tUnaryTests & DMN_LATEST__tLiteralExpression)?.["@_id"] ?? "",
             content: ruleRow[columnIndex]?.text?.__$$text ?? "",
           };
           return tableRow;
@@ -666,7 +662,7 @@ export function DecisionTableExpression({
           // Do not inline this variable for type safety. See https://github.com/microsoft/TypeScript/issues/241
           const ret: Normalized<BoxedDecisionTable> = {
             ...prev,
-            "@_hitPolicy": hitPolicy as DMN15__tHitPolicy,
+            "@_hitPolicy": hitPolicy as DMN_LATEST__tHitPolicy,
             "@_aggregation": HIT_POLICIES_THAT_SUPPORT_AGGREGATION.includes(hitPolicy)
               ? (prev as BoxedDecisionTable)["@_aggregation"]
               : undefined!,
@@ -714,7 +710,7 @@ export function DecisionTableExpression({
   }, []);
 
   const onBuiltInAggregatorSelect = useCallback(
-    (aggregation: DMN15__tBuiltinAggregator) => {
+    (aggregation: DMN_LATEST__tBuiltinAggregator) => {
       setExpression({
         setExpressionAction: (prev: Normalized<BoxedDecisionTable>) => {
           // Do not inline this variable for type safety. See https://github.com/microsoft/TypeScript/issues/241
@@ -753,7 +749,7 @@ export function DecisionTableExpression({
             newRules = [createDefaultRule()];
           }
 
-          const newItems: Normalized<DMN15__tDecisionRule>[] = [];
+          const newItems: Normalized<DMN_LATEST__tDecisionRule>[] = [];
           for (let i = 0; i < args.rowsCount; i++) {
             newItems.push({
               "@_id": generateUuid(),
@@ -820,7 +816,7 @@ export function DecisionTableExpression({
 
           switch (groupType) {
             case DecisionTableColumnType.InputClause:
-              const inputColumnsToAdd: Normalized<DMN15__tInputClause>[] = [];
+              const inputColumnsToAdd: Normalized<DMN_LATEST__tInputClause>[] = [];
 
               const currentInputNames = prev.input?.map((c) => c.inputExpression.text?.__$$text ?? "") ?? [];
               for (let i = 0; i < args.columnsCount; i++) {
@@ -862,7 +858,7 @@ export function DecisionTableExpression({
               return retInput;
 
             case DecisionTableColumnType.OutputClause:
-              const outputColumnsToAdd: Normalized<DMN15__tOutputClause>[] = [];
+              const outputColumnsToAdd: Normalized<DMN_LATEST__tOutputClause>[] = [];
 
               const currentOutputColumnNames = prev.output?.map((c) => c["@_name"] ?? "") ?? [];
               for (let i = 0; i < args.columnsCount; i++) {
@@ -909,7 +905,7 @@ export function DecisionTableExpression({
               return retOutput;
 
             case DecisionTableColumnType.Annotation:
-              const annotationColumnsToAdd: Normalized<DMN15__tRuleAnnotationClause>[] = [];
+              const annotationColumnsToAdd: Normalized<DMN_LATEST__tRuleAnnotationClause>[] = [];
 
               const currentAnnotationColumnNames = prev.annotation?.map((c) => c["@_name"] ?? "") ?? [];
               for (let i = 0; i < args.columnsCount; i++) {

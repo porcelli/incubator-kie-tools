@@ -19,7 +19,12 @@
 
 import * as React from "react";
 import { ErrorBoundary } from "@kie-tools/dmn-runner/dist/ErrorBoundary";
-import { EmptyState, EmptyStateBody, EmptyStateIcon } from "@patternfly/react-core/dist/js/components/EmptyState";
+import {
+  EmptyState,
+  EmptyStateBody,
+  EmptyStateIcon,
+  EmptyStateHeader,
+} from "@patternfly/react-core/dist/js/components/EmptyState";
 import { Text, TextContent } from "@patternfly/react-core/dist/js/components/Text";
 import { CubeIcon } from "@patternfly/react-icons/dist/js/icons/cube-icon";
 import { ExclamationIcon } from "@patternfly/react-icons/dist/js/icons/exclamation-icon";
@@ -54,6 +59,7 @@ interface Props {
   jsonSchemaBridge: DmnUnitablesJsonSchemaBridge;
   scrollableParentRef: React.RefObject<HTMLElement>;
   openBoxedExpressionEditor?: (nodeId: string) => void;
+  openedBoxedExpressionEditorNodeId: string | undefined;
 }
 
 export function DmnRunnerOutputsTable({
@@ -62,6 +68,7 @@ export function DmnRunnerOutputsTable({
   results,
   scrollableParentRef,
   openBoxedExpressionEditor,
+  openedBoxedExpressionEditorNodeId,
 }: Props) {
   const outputUid = useMemo(() => nextId(), []);
   const outputErrorBoundaryRef = useRef<ErrorBoundary>(null);
@@ -83,7 +90,7 @@ export function DmnRunnerOutputsTable({
       {outputError ? (
         outputError
       ) : numberOfResults > 0 ? (
-        <ErrorBoundary ref={outputErrorBoundaryRef} setHasError={setOutputError} error={<OutputError />}>
+        <ErrorBoundary ref={outputErrorBoundaryRef} setHasError={setOutputError} error={<OutputError i18n={i18n} />}>
           <OutputsBeeTable
             scrollableParentRef={scrollableParentRef}
             i18n={i18n}
@@ -91,18 +98,17 @@ export function DmnRunnerOutputsTable({
             results={results}
             id={outputUid}
             openBoxedExpressionEditor={openBoxedExpressionEditor}
+            openedBoxedExpressionEditorNodeId={openedBoxedExpressionEditorNodeId}
           />
         </ErrorBoundary>
       ) : (
         <EmptyState>
-          <EmptyStateIcon icon={CubeIcon} />
+          <EmptyStateHeader icon={<EmptyStateIcon icon={CubeIcon} />} />
           <TextContent>
-            <Text component={"h2"}>No Decision results yet...</Text>
+            <Text component={"h2"}>{i18n.noDecisionResults}</Text>
           </TextContent>
           <EmptyStateBody>
-            <TextContent>
-              Add input and decision nodes, provide values to the inputs at the left and see the Decisions results here.
-            </TextContent>
+            <TextContent>{i18n.addInputDecisionNodes}</TextContent>
           </EmptyStateBody>
         </EmptyState>
       )}
@@ -110,16 +116,16 @@ export function DmnRunnerOutputsTable({
   );
 }
 
-function OutputError() {
+function OutputError(props: { i18n: DmnUnitablesI18n }) {
   return (
     <div>
       <EmptyState>
-        <EmptyStateIcon icon={ExclamationIcon} />
+        <EmptyStateHeader icon={<EmptyStateIcon icon={ExclamationIcon} />} />
         <TextContent>
-          <Text component={"h2"}>Error</Text>
+          <Text component={"h2"}>{props.i18n.error}</Text>
         </TextContent>
         <EmptyStateBody>
-          <p>An error has happened while trying to show your Decision results</p>
+          <p>{props.i18n.errorMessage}</p>
         </EmptyStateBody>
       </EmptyState>
     </div>
@@ -139,6 +145,7 @@ interface OutputsTableProps {
   outputsPropertiesMap: Map<string, OutputField>;
   scrollableParentRef: React.RefObject<HTMLElement>;
   openBoxedExpressionEditor?: (nodeId: string) => void;
+  openedBoxedExpressionEditorNodeId: string | undefined;
 }
 
 function OutputsBeeTable({
@@ -148,6 +155,7 @@ function OutputsBeeTable({
   results,
   scrollableParentRef,
   openBoxedExpressionEditor,
+  openedBoxedExpressionEditorNodeId,
 }: OutputsTableProps) {
   const beeTableOperationConfig = useMemo<BeeTableOperationConfig>(
     () => [
@@ -218,7 +226,13 @@ function OutputsBeeTable({
     } else if (value === null) {
       return "null";
     } else if (Array.isArray(value)) {
-      return value.map((element) => JSON.stringify(element, null, 2).replace(/"([^"]+)":/g, "$1:"));
+      return value.map((element) => {
+        if (typeof element === "string" || typeof element === "number" || typeof element === "boolean") {
+          return element.toString();
+        } else {
+          return JSON.stringify(element, null, 2).replace(/"([^"]+)":/g, "$1:");
+        }
+      });
     } else {
       return JSON.stringify(value);
     }
@@ -303,6 +317,7 @@ function OutputsBeeTable({
         return [
           {
             originalId: `${outputProperties?.name}-${generateUuid()}`,
+            cssClasses: decisionId === openedBoxedExpressionEditorNodeId ? "runner-column-highlight" : "",
             headerCellElementExtension: openBoxedExpressionHeaderButton({ decisionId, decisionName }),
             label: parentLabel,
             accessor: (`output-object-parent-${outputProperties?.name}-` + generateUuid()) as any,
@@ -362,6 +377,7 @@ function OutputsBeeTable({
             columns: [
               {
                 originalId: `${outputProperties?.name}-${generateUuid()}-${outputProperties?.properties?.id}`,
+                cssClasses: decisionId === openedBoxedExpressionEditorNodeId ? "runner-column-highlight" : "",
                 headerCellElementExtension: openBoxedExpressionHeaderButton({ decisionId, decisionName }),
                 label: label,
                 accessor: (`output-${outputProperties?.name}-` + generateUuid()) as any,
@@ -382,6 +398,7 @@ function OutputsBeeTable({
         return [
           {
             originalId: `${outputProperties?.name}-${generateUuid()}`,
+            cssClasses: decisionId === openedBoxedExpressionEditorNodeId ? "runner-column-highlight" : "",
             headerCellElementExtension: openBoxedExpressionHeaderButton({ decisionId, decisionName }),
             label: parentLabel,
             accessor: (`output-array-parent-${outputProperties?.name}-` + generateUuid()) as any,
@@ -414,6 +431,7 @@ function OutputsBeeTable({
         return [
           {
             originalId: `${outputProperties?.name}-${generateUuid()}`,
+            cssClasses: decisionId === openedBoxedExpressionEditorNodeId ? "runner-column-highlight" : "",
             headerCellElementExtension: openBoxedExpressionHeaderButton({ decisionId, decisionName }),
             label: parentLabel,
             accessor: (`output-object-parent-${outputProperties?.name}-` + generateUuid()) as any,
@@ -430,6 +448,7 @@ function OutputsBeeTable({
     deepFlattenObjectColumn,
     getDefaultDmnRunnerOutputColumnWidth,
     openBoxedExpressionHeaderButton,
+    openedBoxedExpressionEditorNodeId,
     outputsPropertiesMap,
     results,
   ]);
@@ -452,10 +471,14 @@ function OutputsBeeTable({
         if (result !== null && !Array.isArray(result) && typeof result === "object") {
           columnResults = deepFlattenObjectRow(result);
         } else {
+          const extractedRowValue = getRowValue(result);
           if (headerColumn.dataType === "context") {
-            columnResults = { context: getRowValue(result) };
+            columnResults = { context: extractedRowValue };
           } else {
-            columnResults = { [`${decisionName}`]: getRowValue(result) };
+            columnResults = { [`${decisionName}`]: extractedRowValue };
+          }
+          if (Array.isArray(extractedRowValue)) {
+            extractedRowValue.forEach((elementValue, index) => (columnResults[`[${index}]`] = elementValue));
           }
         }
 

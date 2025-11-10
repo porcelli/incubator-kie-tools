@@ -42,7 +42,7 @@ Add the `quarkus-oidc-proxy` extension to your `pom.xml` to proxy the Identity P
 <dependency>
   <groupId>io.quarkiverse.oidc-proxy</groupId>
   <artifactId>quarkus-oidc-proxy</artifactId>
-  <version>0.1.2</version>
+  <version>0.2.2</version>
 </dependency>
 ```
 
@@ -91,7 +91,7 @@ modal:
 More settings are available in the **Advanced OpenID Connect settings** section:
 
 - **Client ID**: Overrides the Client ID used for this connection. Defaults to the value of the `RUNTIME_TOOLS_MANAGEMENT_CONSOLE_OIDC_CLIENT_CLIENT_ID` environment variable.
-- **Scope**: Overrides the scopes requested to the Identity Provider. Useful from some Identity Providers that will only grant a Refresh Token if the `offline_access` scope is included. Defaults to `openid email profile`.
+- **Scope**: Overrides the scopes requested to the Identity Provider. Useful from some Identity Providers that will only grant a Refresh Token if the `offline_access` scope is included. Defaults to the value of the `RUNTIME_TOOLS_MANAGEMENT_CONSOLE_OIDC_CLIENT_DEFAULT_SCOPES` environment variable
 - **Audience**: This is the `audience` parameter in the Authorization request. Used to identify the service that the token is intended for. Empty by default.
 
 If your runtime uses OpenID Connect authentication, you should be redirected to the Identity Provider
