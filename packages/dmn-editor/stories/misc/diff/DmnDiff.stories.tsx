@@ -58,7 +58,56 @@ const DmnDiffAlgoPlayground: React.FC = () => {
 
     try {
       const diff = computeDmnDiff(versionA.model, versionB.model);
-      const successMessage = `DMN diff complete.\nNode changes: ${diff.nodes.length}\nEdge changes: ${diff.edges.length}`;
+
+      const formatPropertyChanges = (
+        propertyChanges?: { property: string; previousValue?: unknown; currentValue?: unknown }[]
+      ) => {
+        if (!propertyChanges || propertyChanges.length === 0) {
+          return "";
+        }
+
+        return propertyChanges
+          .map(
+            (change) =>
+              `    - ${change.property}: ${String(change.previousValue ?? "—")} -> ${String(change.currentValue ?? "—")}`
+          )
+          .join("\n");
+      };
+
+      const formatElementChanges = (
+        elements: Array<{
+          id: string;
+          elementName?: string;
+          elementType: string;
+          changeType: string;
+          changedProperties?: { property: string; previousValue?: unknown; currentValue?: unknown }[];
+        }>
+      ) => {
+        if (elements.length === 0) {
+          return "  none";
+        }
+
+        return elements
+          .map((element) => {
+            const header = `  - ${element.changeType} ${element.elementType} ${element.elementName ?? element.id}`;
+            const properties = formatPropertyChanges(element.changedProperties);
+            return properties ? `${header}\n${properties}` : header;
+          })
+          .join("\n");
+      };
+
+      const successMessage = [
+        "DMN diff complete.",
+        `Node changes: ${diff.nodes.length}`,
+        `Edge changes: ${diff.edges.length}`,
+        "",
+        "Node details:",
+        formatElementChanges(diff.nodes),
+        "",
+        "Edge details:",
+        formatElementChanges(diff.edges),
+      ].join("\n");
+
       if (typeof globalThis.alert === "function") {
         globalThis.alert(successMessage);
       } else {
