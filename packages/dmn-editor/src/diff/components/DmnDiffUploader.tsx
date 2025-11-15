@@ -100,6 +100,11 @@ const FileUploadArea: React.FC<FileUploadAreaProps> = ({ version, label }) => {
     [version, clearFile]
   );
 
+  const handleChooseAnotherFile = useCallback((event: React.MouseEvent) => {
+    event.stopPropagation();
+    fileInputRef.current?.click();
+  }, []);
+
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
       if ((event.key === "Enter" || event.key === " ") && !file && !isLoading) {
@@ -193,7 +198,7 @@ const FileUploadArea: React.FC<FileUploadAreaProps> = ({ version, label }) => {
               isInline
             />
             <div style={{ marginTop: "12px" }}>
-              <Button variant="link" onClick={() => fileInputRef.current?.click()}>
+              <Button variant="link" onClick={handleChooseAnotherFile}>
                 Choose another file
               </Button>
             </div>
