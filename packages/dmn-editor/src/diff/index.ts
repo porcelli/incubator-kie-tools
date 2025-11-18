@@ -23,4 +23,3 @@ export * from "./constants";
 export * from "./validation";
 export * from "./store/DmnDiffStore";
 export * from "./algorithms/dmnDiffAlgorithm";
-
